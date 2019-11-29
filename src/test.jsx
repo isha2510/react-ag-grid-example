@@ -16,11 +16,17 @@ class GridExample extends Component {
         super(props);
         this.onUpdate = this.onUpdate.bind(this);
         this.setBooleanVal = this.setBooleanVal.bind(this);
+        this.refreshEvenRowsCurrencyData = this.refreshEvenRowsCurrencyData.bind(this);
+        
         this.state = {
             isUpdate: false,
             rowId: '',
             modules: AllCommunityModules,
             rowData: [],
+            originalEmail:'',
+            newvalue:'',
+            rowid:'',
+            originalValue:[],
             columnDefs: [],
             defaultColDef: {
                 editable: true,
@@ -54,7 +60,7 @@ class GridExample extends Component {
                     const email = params.data.email.trim();
                     const newValue = params.newValue.trim();
                     if (email !== newValue) {
-                        setBooleanVal(true);
+                        setBooleanVal(true,email,newValue,params.data.id);
                         params.data.email = newValue;
                         return true;
                     } else {
@@ -85,10 +91,12 @@ class GridExample extends Component {
             columnDefs: columnDefs
         })
     }
-    setBooleanVal(val) {
+    setBooleanVal(val,email,newValue,id) {
         this.setState({
-            isUpdate: val
-
+            isUpdate: val,
+            originalEmail:email,
+            newvalue:newValue,
+            rowid:id
         })
     }
 
@@ -98,7 +106,8 @@ class GridExample extends Component {
                 console.log(res);
                 this.setState({
                     rowData: res.data,
-                    isUpdate: false
+                    isUpdate: false,
+                    
                 })
             }
             )
@@ -165,12 +174,26 @@ class GridExample extends Component {
                 },
                 {
                     label: 'No',
-                    onClick: () => this.refreshData()
+                    onClick: () => this.refreshEvenRowsCurrencyData() 
+                        
                 }
             ]
         });
     }
-
+    refreshEvenRowsCurrencyData() {
+       
+            let settingData=this.state.rowData
+            for(let i=0;i<settingData.length;i++){
+                if(settingData[i].email==this.state.newvalue&&settingData[i].id==this.state.rowid)
+                {
+                    settingData[i].email=this.state.originalEmail;
+                }
+            }
+        this.setState({rowData:settingData})
+        console.log(this.state.rowData)
+        this.gridApi.refreshCells({ columns: ["email"] });
+        
+      }
 
     render() {
         return (
@@ -182,6 +205,7 @@ class GridExample extends Component {
 
                     className="ag-theme-balham-dark"
                 >
+                   
                     <AgGridReact
                         modules={this.state.modules}
                         columnDefs={this.state.columnDefs}
